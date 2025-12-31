@@ -32,11 +32,12 @@
         grape: "Semillon",
         country: "Australia",
         region: "Hunter Valley",
-        year: "2017",
+        year: "2019",
         body: 1,
         dryness: 1,
         correctNotes: ["Lemon curd", "Toast", "Honey", "Lanolin", "Citrus", "Beeswax"],
-        description: "Hunter Valley Semillon is one of Australia's unique wine styles. Picked early at low sugar levels, it ages remarkably well, developing toasty complexity while remaining light-bodied."
+        description: "Hunter Valley Semillon is one of Australia's unique wine styles. Picked early at low sugar levels, it ages remarkably well. At 6 years old, the 2019 will be developing toasty, honeyed complexity while remaining light-bodied.",
+        price: 99.99
       },
       {
         id: 2,
@@ -44,11 +45,12 @@
         grape: "Grüner Veltliner",
         country: "Australia",
         region: "Eden Valley",
-        year: "2020",
+        year: "2025",
         body: 2,
         dryness: 1,
         correctNotes: ["White pepper", "Citrus", "Green apple", "Herbs", "Mineral"],
-        description: "Grüner Veltliner is Austria's signature grape, but it's found a lovely home in the Eden Valley. Expect crisp acidity with characteristic white pepper notes."
+        description: "Grüner Veltliner is Austria's signature grape, but it's found a lovely home in the Eden Valley. This fresh 2025 vintage will be vibrant and crisp with characteristic white pepper and citrus notes.",
+        price: 27.99
       },
       {
         id: 3,
@@ -56,11 +58,12 @@
         grape: "Marsanne",
         country: "Australia",
         region: "Goulburn Valley",
-        year: "NV",
+        year: "2024",
         body: 2,
         dryness: 1,
         correctNotes: ["Honeysuckle", "Lemon curd", "Honey", "Stone fruit", "Citrus", "Nutty"],
-        description: "Tahbilk has the largest and oldest Marsanne plantings in the world, dating back to 1927. This Goulburn Valley icon is fresh and citrusy when young, developing honeysuckle and toasty complexity with age."
+        description: "Tahbilk has the largest and oldest Marsanne plantings in the world, dating back to 1927. This young 2024 will be fresh and citrusy with bright acidity — give it time and it'll develop honeysuckle and toasty complexity.",
+        price: 16.99
       },
       {
         id: 4,
@@ -68,11 +71,12 @@
         grape: "Viognier",
         country: "Australia",
         region: "Eden Valley",
-        year: "2017",
+        year: "2023",
         body: 5,
         dryness: 2,
         correctNotes: ["Apricot", "Ginger", "Honey", "Floral", "Stone fruit", "Nutty", "Oily texture"],
-        description: "The Virgilius is Yalumba's flagship Viognier, named after the Roman poet. At 7+ years old, it will have evolved from primary fruit to more honeyed, savoury characters."
+        description: "The Virgilius is Yalumba's flagship Viognier, named after the Roman poet. Expect rich apricot, ginger and floral aromatics with that signature Viognier oiliness and texture.",
+        price: 49.99
       }
     ];
 
@@ -94,7 +98,7 @@
       "Spain": ["Rías Baixas", "Rueda", "Penedès", "Rioja", "Galicia", "Catalonia"]
     };
 
-    const allYears = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "NV"];
+    const allYears = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "NV"];
     const allNotes = ["Lemon curd", "Toast", "Honey", "Lanolin", "Citrus", "Beeswax", "White pepper", "Green apple", "Herbs", "Mineral", "Stone fruit", "Herbal", "Waxy", "Pear", "Almond", "Apricot", "Ginger", "Floral", "Nutty", "Oily texture", "Tropical fruit", "Vanilla", "Oak", "Butter", "Grass", "Honeysuckle"];
 
     function WineQuiz() {
@@ -111,6 +115,9 @@
       const [wineRevealed, setWineRevealed] = useState([false, false, false, false]);
       const [showFinalSummary, setShowFinalSummary] = useState(false);
       const [viewingResults, setViewingResults] = useState(false);
+      const [priceOrder, setPriceOrder] = useState(['', '', '', '']);
+      const [priceGuesses, setPriceGuesses] = useState(['', '', '', '']);
+      const [bonusRevealed, setBonusRevealed] = useState(false);
 
       const updateAnswer = (field, value) => {
         const newAnswers = [...answers];
@@ -186,6 +193,41 @@
         return { grade: "Brave Beginner", emoji: "🌱", color: "#8b7355" };
       };
 
+      const getCorrectPriceOrder = () => {
+        const winesWithPrices = wines.map((w, i) => ({ index: i, price: w.price, name: w.name }));
+        winesWithPrices.sort((a, b) => a.price - b.price);
+        return winesWithPrices.map(w => w.index);
+      };
+
+      const calculateBonusScore = () => {
+        let bonusPoints = 0;
+        const correctOrder = getCorrectPriceOrder();
+        
+        // Check price order - 1 point per correct position
+        let orderPoints = 0;
+        priceOrder.forEach((guess, position) => {
+          if (guess !== '' && parseInt(guess) === correctOrder[position]) {
+            orderPoints++;
+          }
+        });
+        bonusPoints += orderPoints;
+        
+        // Check price guesses - 1 point if within $10
+        let pricePoints = 0;
+        priceGuesses.forEach((guess, index) => {
+          if (guess !== '') {
+            const guessNum = parseFloat(guess);
+            const actualPrice = wines[index].price;
+            if (!isNaN(guessNum) && Math.abs(guessNum - actualPrice) <= 10) {
+              pricePoints++;
+            }
+          }
+        });
+        bonusPoints += pricePoints;
+        
+        return { bonusPoints, orderPoints, pricePoints, maxBonus: 8 };
+      };
+
       const resetQuiz = () => {
         setShowFinalSummary(false);
         setCurrentWine(0);
@@ -195,6 +237,9 @@
           grape: '', country: '', region: '', year: '',
           body: 3, dryness: 3, notes: []
         })));
+        setPriceOrder(['', '', '', '']);
+        setPriceGuesses(['', '', '', '']);
+        setBonusRevealed(false);
       };
 
       const currentAnswer = answers[currentWine];
@@ -203,8 +248,12 @@
       // Final Summary Screen
       if (showFinalSummary) {
         const { totalScore, totalPossible } = calculateTotalScore();
-        const percentage = Math.round((totalScore / totalPossible) * 100);
+        const { bonusPoints, orderPoints, pricePoints, maxBonus } = calculateBonusScore();
+        const grandTotal = totalScore + (bonusRevealed ? bonusPoints : 0);
+        const grandPossible = totalPossible + maxBonus;
+        const percentage = Math.round((grandTotal / grandPossible) * 100);
         const { grade, emoji, color } = getGrade(percentage);
+        const correctOrder = getCorrectPriceOrder();
 
         return (
           <div style={styles.container}>
@@ -219,11 +268,16 @@
                 <span style={styles.gradeEmoji}>{emoji}</span>
                 <h2 style={{...styles.gradeTitle, color: color}}>{grade}</h2>
                 <div style={styles.totalScoreDisplay}>
-                  <span style={styles.totalScoreNumber}>{totalScore}</span>
+                  <span style={styles.totalScoreNumber}>{grandTotal}</span>
                   <span style={styles.totalScoreDivider}>/</span>
-                  <span style={styles.totalScoreTotal}>{totalPossible}</span>
+                  <span style={styles.totalScoreTotal}>{grandPossible}</span>
                 </div>
                 <p style={styles.percentageText}>{percentage}% correct</p>
+                {bonusRevealed && (
+                  <p style={styles.bonusBreakdown}>
+                    Tasting: {totalScore}/{totalPossible} • Bonus: {bonusPoints}/{maxBonus}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -303,6 +357,95 @@
                   </div>
                 );
               })}
+            </div>
+
+            {/* Bonus Round */}
+            <div style={styles.bonusCard}>
+              <h3 style={styles.bonusTitle}>🎁 Bonus Round</h3>
+              
+              <div style={styles.bonusSection}>
+                <label style={styles.bonusLabel}>Rank cheapest to most expensive (1 point each)</label>
+                <div style={styles.priceOrderGrid}>
+                  {['Cheapest', '2nd', '3rd', 'Most expensive'].map((label, position) => (
+                    <div key={position} style={styles.priceOrderRow}>
+                      <span style={styles.priceOrderLabel}>{label}</span>
+                      <select
+                        style={{
+                          ...styles.priceOrderSelect,
+                          ...(bonusRevealed && priceOrder[position] !== '' && parseInt(priceOrder[position]) === correctOrder[position] ? styles.correct : {}),
+                          ...(bonusRevealed && priceOrder[position] !== '' && parseInt(priceOrder[position]) !== correctOrder[position] ? styles.incorrect : {})
+                        }}
+                        value={priceOrder[position]}
+                        onChange={(e) => {
+                          const newOrder = [...priceOrder];
+                          newOrder[position] = e.target.value;
+                          setPriceOrder(newOrder);
+                        }}
+                        disabled={bonusRevealed}
+                      >
+                        <option value="">Select wine...</option>
+                        {wines.map((wine, i) => (
+                          <option key={i} value={i}>Wine {i + 1}</option>
+                        ))}
+                      </select>
+                      {bonusRevealed && (
+                        <span style={styles.priceReveal}>Wine {correctOrder[position] + 1}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={styles.bonusSection}>
+                <label style={styles.bonusLabel}>Guess the price of each wine (1 point if within $10)</label>
+                <div style={styles.priceGuessGrid}>
+                  {wines.map((wine, index) => (
+                    <div key={index} style={styles.priceGuessRow}>
+                      <span style={styles.priceGuessLabel}>Wine {index + 1}</span>
+                      <div style={styles.priceInputWrapper}>
+                        <span style={styles.dollarSign}>$</span>
+                        <input
+                          type="number"
+                          style={{
+                            ...styles.priceInput,
+                            ...(bonusRevealed && priceGuesses[index] !== '' && Math.abs(parseFloat(priceGuesses[index]) - wine.price) <= 10 ? styles.correct : {}),
+                            ...(bonusRevealed && priceGuesses[index] !== '' && Math.abs(parseFloat(priceGuesses[index]) - wine.price) > 10 ? styles.incorrect : {})
+                          }}
+                          placeholder="0.00"
+                          value={priceGuesses[index]}
+                          onChange={(e) => {
+                            const newGuesses = [...priceGuesses];
+                            newGuesses[index] = e.target.value;
+                            setPriceGuesses(newGuesses);
+                          }}
+                          disabled={bonusRevealed}
+                        />
+                      </div>
+                      {bonusRevealed && (
+                        <span style={styles.priceReveal}>${wine.price.toFixed(2)}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {!bonusRevealed ? (
+                <button 
+                  style={{...styles.navButton, ...styles.navButtonPrimary, ...styles.revealBonusButton}}
+                  onClick={() => setBonusRevealed(true)}
+                >
+                  Reveal Bonus Answers
+                </button>
+              ) : (
+                <div style={styles.bonusResults}>
+                  <p style={styles.bonusResultText}>
+                    Price order: {orderPoints}/4 • Price guesses: {pricePoints}/4
+                  </p>
+                  <p style={styles.bonusResultTotal}>
+                    Bonus total: {bonusPoints}/{maxBonus} points
+                  </p>
+                </div>
+              )}
             </div>
             
             <button style={styles.resetButton} onClick={resetQuiz}>
@@ -1114,6 +1257,125 @@
         letterSpacing: '0.1em',
         textDecoration: 'underline',
         textUnderlineOffset: '3px',
+      },
+      bonusCard: {
+        background: 'rgba(244, 239, 233, 0.03)',
+        margin: '24px 16px',
+        padding: '24px 20px',
+        borderRadius: '2px',
+        border: '1px solid rgba(212, 175, 55, 0.3)',
+      },
+      bonusTitle: {
+        fontSize: '1.3rem',
+        fontWeight: 500,
+        color: '#d4af37',
+        margin: '0 0 20px',
+        textAlign: 'center',
+        letterSpacing: '0.1em',
+      },
+      bonusSection: {
+        marginBottom: '24px',
+      },
+      bonusLabel: {
+        display: 'block',
+        fontSize: '0.85rem',
+        fontWeight: 600,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        marginBottom: '12px',
+        color: '#8b7355',
+      },
+      bonusBreakdown: {
+        fontSize: '0.9rem',
+        color: '#6b5b4b',
+        marginTop: '12px',
+      },
+      priceOrderGrid: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      },
+      priceOrderRow: {
+        display: 'grid',
+        gridTemplateColumns: '100px 1fr auto',
+        gap: '12px',
+        alignItems: 'center',
+      },
+      priceOrderLabel: {
+        fontSize: '0.9rem',
+        color: '#d4c4b0',
+      },
+      priceOrderSelect: {
+        padding: '10px 12px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '2px',
+        background: 'rgba(26, 21, 20, 0.8)',
+        color: '#d4c4b0',
+        fontSize: '0.95rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+      },
+      priceGuessGrid: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      },
+      priceGuessRow: {
+        display: 'grid',
+        gridTemplateColumns: '70px 1fr auto',
+        gap: '12px',
+        alignItems: 'center',
+      },
+      priceGuessLabel: {
+        fontSize: '0.9rem',
+        color: '#d4c4b0',
+      },
+      priceInputWrapper: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+      },
+      dollarSign: {
+        color: '#8b7355',
+        fontSize: '1rem',
+      },
+      priceInput: {
+        padding: '10px 12px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '2px',
+        background: 'rgba(26, 21, 20, 0.8)',
+        color: '#d4c4b0',
+        fontSize: '0.95rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        width: '100px',
+      },
+      priceReveal: {
+        fontSize: '0.85rem',
+        color: '#8b7355',
+        fontWeight: 500,
+      },
+      revealBonusButton: {
+        display: 'block',
+        margin: '20px auto 0',
+        width: 'auto',
+      },
+      bonusResults: {
+        textAlign: 'center',
+        marginTop: '20px',
+        padding: '16px',
+        background: 'rgba(212, 175, 55, 0.1)',
+        borderRadius: '2px',
+      },
+      bonusResultText: {
+        fontSize: '0.95rem',
+        color: '#d4c4b0',
+        margin: '0 0 8px',
+      },
+      bonusResultTotal: {
+        fontSize: '1.1rem',
+        fontWeight: 600,
+        color: '#d4af37',
+        margin: 0,
       },
     };
 
