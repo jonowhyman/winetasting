@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Blind Tasting — NYE 2025</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      background: linear-gradient(180deg, #1a1514 0%, #2d2320 100%);
+      min-height: 100vh;
+    }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const wines = [
+      {
+        id: 1,
+        name: "Tyrrell's Vat 1 Semillon",
+        grape: "Semillon",
+        country: "Australia",
+        region: "Hunter Valley",
+        year: "2019",
+        body: 1,
+        dryness: 1,
+        correctNotes: ["Lemon curd", "Toast", "Honey", "Lanolin", "Citrus", "Beeswax"],
+        description: "Hunter Valley Semillon is one of Australia's unique wine styles. Picked early at low sugar levels, it ages remarkably well. At 6 years old, the 2019 will be developing toasty, honeyed complexity while remaining light-bodied.",
+        price: 99.99
+      },
+      {
+        id: 2,
+        name: "Eden Hall Grüner Veltliner",
+        grape: "Grüner Veltliner",
+        country: "Australia",
+        region: "Eden Valley",
+        year: "2025",
+        body: 2,
+        dryness: 1,
+        correctNotes: ["White pepper", "Citrus", "Green apple", "Herbs", "Mineral"],
+        description: "Grüner Veltliner is Austria's signature grape, but it's found a lovely home in the Eden Valley. This fresh 2025 vintage will be vibrant and crisp with characteristic white pepper and citrus notes.",
+        price: 27.99
+      },
+      {
+        id: 3,
+        name: "Tahbilk Marsanne",
+        grape: "Marsanne",
+        country: "Australia",
+        region: "Goulburn Valley",
+        year: "2024",
+        body: 2,
+        dryness: 1,
+        correctNotes: ["Honeysuckle", "Lemon curd", "Honey", "Stone fruit", "Citrus", "Nutty"],
+        description: "Tahbilk has the largest and oldest Marsanne plantings in the world, dating back to 1927. This young 2024 will be fresh and citrusy with bright acidity — give it time and it'll develop honeysuckle and toasty complexity.",
+        price: 16.99
+      },
+      {
+        id: 4,
+        name: "Yalumba Virgilius Viognier",
+        grape: "Viognier",
+        country: "Australia",
+        region: "Eden Valley",
+        year: "2023",
+        body: 5,
+        dryness: 2,
+        correctNotes: ["Apricot", "Ginger", "Honey", "Floral", "Stone fruit", "Nutty", "Oily texture"],
+        description: "The Virgilius is Yalumba's flagship Viognier, named after the Roman poet. Expect rich apricot, ginger and floral aromatics with that signature Viognier oiliness and texture.",
+        price: 49.99
+      }
+    ];
+
+    const allGrapes = [
+      "Chardonnay", "Semillon", "Grüner Veltliner", "Riesling", "Roussanne", 
+      "Viognier", "Sauvignon Blanc", "Pinot Grigio", "Gewürztraminer", "Marsanne",
+      "Chenin Blanc", "Verdelho", "Fiano", "Albariño", "Vermentino"
+    ];
+
+    const allCountries = ["Australia", "France", "Austria", "New Zealand", "Italy", "Germany", "Spain"];
+
+    const regionsByCountry = {
+      "Australia": ["Hunter Valley", "Eden Valley", "Goulburn Valley", "Beechworth", "Barossa Valley", "Margaret River", "Yarra Valley", "Adelaide Hills", "Clare Valley", "McLaren Vale", "Tasmania"],
+      "France": ["Burgundy", "Loire Valley", "Alsace", "Rhône Valley", "Bordeaux", "Champagne", "Languedoc", "Provence"],
+      "Austria": ["Wachau", "Kamptal", "Kremstal", "Burgenland", "Styria", "Vienna"],
+      "New Zealand": ["Marlborough", "Hawke's Bay", "Central Otago", "Martinborough", "Gisborne", "Nelson"],
+      "Italy": ["Piedmont", "Tuscany", "Veneto", "Friuli", "Alto Adige", "Sicily", "Sardinia"],
+      "Germany": ["Mosel", "Rheingau", "Pfalz", "Baden", "Franken", "Nahe"],
+      "Spain": ["Rías Baixas", "Rueda", "Penedès", "Rioja", "Galicia", "Catalonia"]
+    };
+
+    const allYears = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "NV"];
+    const allNotes = ["Lemon curd", "Toast", "Honey", "Lanolin", "Citrus", "Beeswax", "White pepper", "Green apple", "Herbs", "Mineral", "Stone fruit", "Herbal", "Waxy", "Pear", "Almond", "Apricot", "Ginger", "Floral", "Nutty", "Oily texture", "Tropical fruit", "Vanilla", "Oak", "Butter", "Grass", "Honeysuckle"];
+
+    function WineQuiz() {
+      const [currentWine, setCurrentWine] = useState(0);
+      const [answers, setAnswers] = useState(wines.map(() => ({
+        grape: '',
+        country: '',
+        region: '',
+        year: '',
+        body: 3,
+        dryness: 3,
+        notes: []
+      })));
+      const [wineRevealed, setWineRevealed] = useState([false, false, false, false]);
+      const [showFinalSummary, setShowFinalSummary] = useState(false);
+      const [viewingResults, setViewingResults] = useState(false);
+      const [priceOrder, setPriceOrder] = useState(['', '', '', '']);
+      const [priceGuesses, setPriceGuesses] = useState(['', '', '', '']);
+      const [bonusRevealed, setBonusRevealed] = useState(false);
+
+      const updateAnswer = (field, value) => {
+        const newAnswers = [...answers];
+        if (field === 'country' && value !== answers[currentWine].country) {
+          newAnswers[currentWine] = { ...newAnswers[currentWine], [field]: value, region: '' };
+        } else {
+          newAnswers[currentWine] = { ...newAnswers[currentWine], [field]: value };
+        }
+        setAnswers(newAnswers);
+      };
+
+      const toggleNote = (note) => {
+        const currentNotes = answers[currentWine].notes;
+        if (currentNotes.includes(note)) {
+          updateAnswer('notes', currentNotes.filter(n => n !== note));
+        } else if (currentNotes.length < 6) {
+          updateAnswer('notes', [...currentNotes, note]);
+        }
+      };
+
+      const revealCurrentWine = () => {
+        const newRevealed = [...wineRevealed];
+        newRevealed[currentWine] = true;
+        setWineRevealed(newRevealed);
+        setViewingResults(true);
+      };
+
+      const goToNextWine = () => {
+        if (currentWine < 3) {
+          setCurrentWine(currentWine + 1);
+          setViewingResults(false);
+        } else {
+          setShowFinalSummary(true);
+        }
+      };
+
+      const calculateScore = (wineIndex) => {
+        const wine = wines[wineIndex];
+        const answer = answers[wineIndex];
+        let score = 0;
+        let total = 7;
+        
+        if (answer.grape === wine.grape) score++;
+        if (answer.country === wine.country) score++;
+        if (answer.region === wine.region) score++;
+        if (answer.year === wine.year) score++;
+        if (Math.abs(answer.body - wine.body) <= 1) score++;
+        if (Math.abs(answer.dryness - wine.dryness) <= 1) score++;
+        
+        const matchedNotes = answer.notes.filter(n => wine.correctNotes.includes(n)).length;
+        const notesPoint = matchedNotes >= 2 ? 1 : 0;
+        score += notesPoint;
+        
+        return { score, total, matchedNotes, totalNotes: wine.correctNotes.length, notesPoint };
+      };
+
+      const calculateTotalScore = () => {
+        let totalScore = 0;
+        let totalPossible = 0;
+        wines.forEach((_, index) => {
+          const { score, total } = calculateScore(index);
+          totalScore += score;
+          totalPossible += total;
+        });
+        return { totalScore, totalPossible };
+      };
+
+      const getGrade = (percentage) => {
+        if (percentage >= 90) return { grade: "Sommelier", emoji: "🏆", color: "#d4af37" };
+        if (percentage >= 75) return { grade: "Wine Enthusiast", emoji: "🍷", color: "#a8c8a8" };
+        if (percentage >= 60) return { grade: "Keen Taster", emoji: "👃", color: "#c8b8a8" };
+        if (percentage >= 40) return { grade: "Learning Palate", emoji: "📚", color: "#a89080" };
+        return { grade: "Brave Beginner", emoji: "🌱", color: "#8b7355" };
+      };
+
+      const getCorrectPriceOrder = () => {
+        const winesWithPrices = wines.map((w, i) => ({ index: i, price: w.price, name: w.name }));
+        winesWithPrices.sort((a, b) => a.price - b.price);
+        return winesWithPrices.map(w => w.index);
+      };
+
+      const calculateBonusScore = () => {
+        let bonusPoints = 0;
+        const correctOrder = getCorrectPriceOrder();
+        
+        // Check price order - 1 point per correct position
+        let orderPoints = 0;
+        priceOrder.forEach((guess, position) => {
+          if (guess !== '' && parseInt(guess) === correctOrder[position]) {
+            orderPoints++;
+          }
+        });
+        bonusPoints += orderPoints;
+        
+        // Check price guesses - 1 point if within $10
+        let pricePoints = 0;
+        priceGuesses.forEach((guess, index) => {
+          if (guess !== '') {
+            const guessNum = parseFloat(guess);
+            const actualPrice = wines[index].price;
+            if (!isNaN(guessNum) && Math.abs(guessNum - actualPrice) <= 10) {
+              pricePoints++;
+            }
+          }
+        });
+        bonusPoints += pricePoints;
+        
+        return { bonusPoints, orderPoints, pricePoints, maxBonus: 8 };
+      };
+
+      const resetQuiz = () => {
+        setShowFinalSummary(false);
+        setCurrentWine(0);
+        setViewingResults(false);
+        setWineRevealed([false, false, false, false]);
+        setAnswers(wines.map(() => ({
+          grape: '', country: '', region: '', year: '',
+          body: 3, dryness: 3, notes: []
+        })));
+        setPriceOrder(['', '', '', '']);
+        setPriceGuesses(['', '', '', '']);
+        setBonusRevealed(false);
+      };
+
+      const currentAnswer = answers[currentWine];
+      const currentRegions = currentAnswer.country ? regionsByCountry[currentAnswer.country] : [];
+
+      // Final Summary Screen
+      if (showFinalSummary) {
+        const { totalScore, totalPossible } = calculateTotalScore();
+        const { bonusPoints, orderPoints, pricePoints, maxBonus } = calculateBonusScore();
+        const grandTotal = totalScore + (bonusRevealed ? bonusPoints : 0);
+        const grandPossible = totalPossible + maxBonus;
+        const percentage = Math.round((grandTotal / grandPossible) * 100);
+        const { grade, emoji, color } = getGrade(percentage);
+        const correctOrder = getCorrectPriceOrder();
+
+        return (
+          <div style={styles.container}>
+            <div style={styles.header}>
+              <div style={styles.headerAccent}></div>
+              <h1 style={styles.title}>Final Results</h1>
+              <p style={styles.subtitle}>New Year's Eve 2025</p>
+            </div>
+
+            <div style={styles.summaryCard}>
+              <div style={styles.gradeSection}>
+                <span style={styles.gradeEmoji}>{emoji}</span>
+                <h2 style={{...styles.gradeTitle, color: color}}>{grade}</h2>
+                <div style={styles.totalScoreDisplay}>
+                  <span style={styles.totalScoreNumber}>{grandTotal}</span>
+                  <span style={styles.totalScoreDivider}>/</span>
+                  <span style={styles.totalScoreTotal}>{grandPossible}</span>
+                </div>
+                <p style={styles.percentageText}>{percentage}% correct</p>
+                {bonusRevealed && (
+                  <p style={styles.bonusBreakdown}>
+                    Tasting: {totalScore}/{totalPossible} • Bonus: {bonusPoints}/{maxBonus}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div style={styles.resultsContainer}>
+              {wines.map((wine, index) => {
+                const { score, total, matchedNotes, totalNotes, notesPoint } = calculateScore(index);
+                const answer = answers[index];
+                
+                return (
+                  <div key={wine.id} style={styles.resultCard}>
+                    <div style={styles.resultHeaderSummary}>
+                      <span style={styles.wineNumber}>Wine {index + 1}</span>
+                      <span style={styles.score}>{score}/{total}</span>
+                    </div>
+                    
+                    <div style={styles.resultContent}>
+                      <h3 style={styles.wineName}>{wine.name}</h3>
+                      
+                      <div style={styles.comparisonGrid}>
+                        <div style={styles.comparisonRow}>
+                          <span style={styles.compLabel}>Grape</span>
+                          <span style={{...styles.compAnswer, ...(answer.grape === wine.grape ? styles.correct : styles.incorrect)}}>
+                            {answer.grape || '—'}
+                          </span>
+                          <span style={styles.compCorrect}>{wine.grape}</span>
+                        </div>
+                        
+                        <div style={styles.comparisonRow}>
+                          <span style={styles.compLabel}>Country</span>
+                          <span style={{...styles.compAnswer, ...(answer.country === wine.country ? styles.correct : styles.incorrect)}}>
+                            {answer.country || '—'}
+                          </span>
+                          <span style={styles.compCorrect}>{wine.country}</span>
+                        </div>
+                        
+                        <div style={styles.comparisonRow}>
+                          <span style={styles.compLabel}>Region</span>
+                          <span style={{...styles.compAnswer, ...(answer.region === wine.region ? styles.correct : styles.incorrect)}}>
+                            {answer.region || '—'}
+                          </span>
+                          <span style={styles.compCorrect}>{wine.region}</span>
+                        </div>
+                        
+                        <div style={styles.comparisonRow}>
+                          <span style={styles.compLabel}>Vintage</span>
+                          <span style={{...styles.compAnswer, ...(answer.year === wine.year ? styles.correct : styles.incorrect)}}>
+                            {answer.year || '—'}
+                          </span>
+                          <span style={styles.compCorrect}>{wine.year}</span>
+                        </div>
+                        
+                        <div style={styles.comparisonRow}>
+                          <span style={styles.compLabel}>Body</span>
+                          <span style={{...styles.compAnswer, ...(Math.abs(answer.body - wine.body) <= 1 ? styles.correct : styles.incorrect)}}>
+                            {answer.body}/5
+                          </span>
+                          <span style={styles.compCorrect}>{wine.body}/5</span>
+                        </div>
+                        
+                        <div style={styles.comparisonRow}>
+                          <span style={styles.compLabel}>Dryness</span>
+                          <span style={{...styles.compAnswer, ...(Math.abs(answer.dryness - wine.dryness) <= 1 ? styles.correct : styles.incorrect)}}>
+                            {answer.dryness}/5
+                          </span>
+                          <span style={styles.compCorrect}>{wine.dryness}/5</span>
+                        </div>
+
+                        <div style={styles.comparisonRow}>
+                          <span style={styles.compLabel}>Notes</span>
+                          <span style={{...styles.compAnswer, ...(notesPoint ? styles.correct : styles.incorrect)}}>
+                            {matchedNotes} matched
+                          </span>
+                          <span style={styles.compCorrect}>2+ for point</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bonus Round */}
+            <div style={styles.bonusCard}>
+              <h3 style={styles.bonusTitle}>🎁 Bonus Round</h3>
+              
+              <div style={styles.bonusSection}>
+                <label style={styles.bonusLabel}>Rank cheapest to most expensive (1 point each)</label>
+                <div style={styles.priceOrderGrid}>
+                  {['Cheapest', '2nd', '3rd', 'Most expensive'].map((label, position) => (
+                    <div key={position} style={styles.priceOrderRow}>
+                      <span style={styles.priceOrderLabel}>{label}</span>
+                      <select
+                        style={{
+                          ...styles.priceOrderSelect,
+                          ...(bonusRevealed && priceOrder[position] !== '' && parseInt(priceOrder[position]) === correctOrder[position] ? styles.correct : {}),
+                          ...(bonusRevealed && priceOrder[position] !== '' && parseInt(priceOrder[position]) !== correctOrder[position] ? styles.incorrect : {})
+                        }}
+                        value={priceOrder[position]}
+                        onChange={(e) => {
+                          const newOrder = [...priceOrder];
+                          newOrder[position] = e.target.value;
+                          setPriceOrder(newOrder);
+                        }}
+                        disabled={bonusRevealed}
+                      >
+                        <option value="">Select wine...</option>
+                        {wines.map((wine, i) => (
+                          <option key={i} value={i}>Wine {i + 1}</option>
+                        ))}
+                      </select>
+                      {bonusRevealed && (
+                        <span style={styles.priceReveal}>Wine {correctOrder[position] + 1}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={styles.bonusSection}>
+                <label style={styles.bonusLabel}>Guess the price of each wine (1 point if within $10)</label>
+                <div style={styles.priceGuessGrid}>
+                  {wines.map((wine, index) => (
+                    <div key={index} style={styles.priceGuessRow}>
+                      <span style={styles.priceGuessLabel}>Wine {index + 1}</span>
+                      <div style={styles.priceInputWrapper}>
+                        <span style={styles.dollarSign}>$</span>
+                        <input
+                          type="number"
+                          style={{
+                            ...styles.priceInput,
+                            ...(bonusRevealed && priceGuesses[index] !== '' && Math.abs(parseFloat(priceGuesses[index]) - wine.price) <= 10 ? styles.correct : {}),
+                            ...(bonusRevealed && priceGuesses[index] !== '' && Math.abs(parseFloat(priceGuesses[index]) - wine.price) > 10 ? styles.incorrect : {})
+                          }}
+                          placeholder="0.00"
+                          value={priceGuesses[index]}
+                          onChange={(e) => {
+                            const newGuesses = [...priceGuesses];
+                            newGuesses[index] = e.target.value;
+                            setPriceGuesses(newGuesses);
+                          }}
+                          disabled={bonusRevealed}
+                        />
+                      </div>
+                      {bonusRevealed && (
+                        <span style={styles.priceReveal}>${wine.price.toFixed(2)}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {!bonusRevealed ? (
+                <button 
+                  style={{...styles.navButton, ...styles.navButtonPrimary, ...styles.revealBonusButton}}
+                  onClick={() => setBonusRevealed(true)}
+                >
+                  Reveal Bonus Answers
+                </button>
+              ) : (
+                <div style={styles.bonusResults}>
+                  <p style={styles.bonusResultText}>
+                    Price order: {orderPoints}/4 • Price guesses: {pricePoints}/4
+                  </p>
+                  <p style={styles.bonusResultTotal}>
+                    Bonus total: {bonusPoints}/{maxBonus} points
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <button style={styles.resetButton} onClick={resetQuiz}>
+              Start Over
+            </button>
+          </div>
+        );
+      }
+
+      // Wine Revealed Screen
+      if (wineRevealed[currentWine] && viewingResults) {
+        const wine = wines[currentWine];
+        const answer = answers[currentWine];
+        const { score, total, matchedNotes, totalNotes, notesPoint } = calculateScore(currentWine);
+        
+        const allWinesRevealed = wineRevealed.every(r => r);
+
+        return (
+          <div style={styles.container}>
+            <div style={styles.header}>
+              <div style={styles.headerAccent}></div>
+              <h1 style={styles.title}>Wine {currentWine + 1}</h1>
+              <p style={styles.subtitle}>Results</p>
+            </div>
+
+            <div style={styles.wineNav}>
+              {wines.map((_, index) => (
+                <button
+                  key={index}
+                  style={{
+                    ...styles.wineNavButton,
+                    ...(wineRevealed[index] ? styles.wineNavComplete : {}),
+                    ...(index === currentWine ? styles.wineNavCurrent : {})
+                  }}
+                  onClick={() => {
+                    setCurrentWine(index);
+                    setViewingResults(wineRevealed[index]);
+                  }}
+                >
+                  {wineRevealed[index] ? '✓' : index + 1}
+                </button>
+              ))}
+            </div>
+
+            <div style={styles.revealCard}>
+              <div style={styles.revealHeader}>
+                <h2 style={styles.revealWineName}>{wine.name}</h2>
+                <div style={styles.revealScore}>
+                  <span style={styles.revealScoreNumber}>{score}</span>
+                  <span style={styles.revealScoreDivider}>/</span>
+                  <span style={styles.revealScoreTotal}>{total}</span>
+                </div>
+              </div>
+
+              <p style={styles.wineDescription}>{wine.description}</p>
+
+              <div style={styles.comparisonGrid}>
+                <div style={styles.comparisonRow}>
+                  <span style={styles.compLabel}>Grape</span>
+                  <span style={{...styles.compAnswer, ...(answer.grape === wine.grape ? styles.correct : styles.incorrect)}}>
+                    {answer.grape || '—'}
+                  </span>
+                  <span style={styles.compCorrect}>{wine.grape}</span>
+                </div>
+                
+                <div style={styles.comparisonRow}>
+                  <span style={styles.compLabel}>Country</span>
+                  <span style={{...styles.compAnswer, ...(answer.country === wine.country ? styles.correct : styles.incorrect)}}>
+                    {answer.country || '—'}
+                  </span>
+                  <span style={styles.compCorrect}>{wine.country}</span>
+                </div>
+                
+                <div style={styles.comparisonRow}>
+                  <span style={styles.compLabel}>Region</span>
+                  <span style={{...styles.compAnswer, ...(answer.region === wine.region ? styles.correct : styles.incorrect)}}>
+                    {answer.region || '—'}
+                  </span>
+                  <span style={styles.compCorrect}>{wine.region}</span>
+                </div>
+                
+                <div style={styles.comparisonRow}>
+                  <span style={styles.compLabel}>Vintage</span>
+                  <span style={{...styles.compAnswer, ...(answer.year === wine.year ? styles.correct : styles.incorrect)}}>
+                    {answer.year || '—'}
+                  </span>
+                  <span style={styles.compCorrect}>{wine.year}</span>
+                </div>
+                
+                <div style={styles.comparisonRow}>
+                  <span style={styles.compLabel}>Body</span>
+                  <span style={{...styles.compAnswer, ...(Math.abs(answer.body - wine.body) <= 1 ? styles.correct : styles.incorrect)}}>
+                    {answer.body}/5
+                  </span>
+                  <span style={styles.compCorrect}>{wine.body}/5</span>
+                </div>
+                
+                <div style={styles.comparisonRow}>
+                  <span style={styles.compLabel}>Dryness</span>
+                  <span style={{...styles.compAnswer, ...(Math.abs(answer.dryness - wine.dryness) <= 1 ? styles.correct : styles.incorrect)}}>
+                    {answer.dryness}/5
+                  </span>
+                  <span style={styles.compCorrect}>{wine.dryness}/5</span>
+                </div>
+              </div>
+
+              <div style={styles.notesSection}>
+                <span style={styles.compLabel}>
+                  Tasting Notes — {matchedNotes} matched {notesPoint ? '✓ +1 point' : '(need 2+ for point)'}
+                </span>
+                <div style={styles.notesTags}>
+                  {wine.correctNotes.map(note => (
+                    <span 
+                      key={note} 
+                      style={{
+                        ...styles.noteTag,
+                        ...(answer.notes.includes(note) ? styles.noteCorrect : styles.noteMissed)
+                      }}
+                    >
+                      {note} {answer.notes.includes(note) ? '✓' : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.revealNavigation}>
+              {currentWine > 0 && wineRevealed[currentWine - 1] && (
+                <button 
+                  style={styles.navButton}
+                  onClick={() => setCurrentWine(currentWine - 1)}
+                >
+                  ← Wine {currentWine}
+                </button>
+              )}
+              
+              {allWinesRevealed ? (
+                <button 
+                  style={{...styles.navButton, ...styles.navButtonPrimary}}
+                  onClick={() => setShowFinalSummary(true)}
+                >
+                  See Final Summary →
+                </button>
+              ) : currentWine < 3 ? (
+                <button 
+                  style={{...styles.navButton, ...styles.navButtonPrimary}}
+                  onClick={() => {
+                    setCurrentWine(currentWine + 1);
+                    setViewingResults(wineRevealed[currentWine + 1]);
+                  }}
+                >
+                  {wineRevealed[currentWine + 1] ? `Wine ${currentWine + 2} →` : `Next Wine →`}
+                </button>
+              ) : (
+                <button 
+                  style={{...styles.navButton, ...styles.navButtonPrimary}}
+                  onClick={() => {
+                    const firstUnrevealed = wineRevealed.findIndex(r => !r);
+                    if (firstUnrevealed !== -1) {
+                      setCurrentWine(firstUnrevealed);
+                      setViewingResults(false);
+                    }
+                  }}
+                >
+                  Continue Tasting →
+                </button>
+              )}
+            </div>
+
+            <button style={styles.resetButtonSmall} onClick={resetQuiz}>
+              Reset Quiz
+            </button>
+          </div>
+        );
+      }
+
+      // Quiz Input Screen
+      return (
+        <div style={styles.container}>
+          <div style={styles.header}>
+            <div style={styles.headerAccent}></div>
+            <h1 style={styles.title}>Blind Tasting</h1>
+            <p style={styles.subtitle}>New Year's Eve 2025</p>
+          </div>
+          
+          <div style={styles.wineNav}>
+            {wines.map((_, index) => (
+              <button
+                key={index}
+                style={{
+                  ...styles.wineNavButton,
+                  ...(wineRevealed[index] ? styles.wineNavComplete : {}),
+                  ...(index === currentWine ? styles.wineNavCurrent : {})
+                }}
+                onClick={() => {
+                  setCurrentWine(index);
+                  if (wineRevealed[index]) {
+                    setViewingResults(true);
+                  }
+                }}
+              >
+                {wineRevealed[index] ? '✓' : index + 1}
+              </button>
+            ))}
+          </div>
+          
+          <div style={styles.card}>
+            <h2 style={styles.cardTitle}>Wine {currentWine + 1}</h2>
+            
+            <div style={styles.section}>
+              <label style={styles.label}>Grape Variety</label>
+              <div style={styles.optionGrid}>
+                {allGrapes.map(grape => (
+                  <button
+                    key={grape}
+                    style={{
+                      ...styles.optionButton,
+                      ...(currentAnswer.grape === grape ? styles.optionSelected : {})
+                    }}
+                    onClick={() => updateAnswer('grape', grape)}
+                  >
+                    {grape}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div style={styles.section}>
+              <label style={styles.label}>Country</label>
+              <div style={styles.optionGrid}>
+                {allCountries.map(country => (
+                  <button
+                    key={country}
+                    style={{
+                      ...styles.optionButton,
+                      ...(currentAnswer.country === country ? styles.optionSelected : {})
+                    }}
+                    onClick={() => updateAnswer('country', country)}
+                  >
+                    {country}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div style={styles.section}>
+              <label style={styles.label}>Region {!currentAnswer.country && <span style={styles.hint}>(select country first)</span>}</label>
+              <div style={styles.optionGrid}>
+                {currentRegions.length > 0 ? (
+                  currentRegions.map(region => (
+                    <button
+                      key={region}
+                      style={{
+                        ...styles.optionButton,
+                        ...(currentAnswer.region === region ? styles.optionSelected : {})
+                      }}
+                      onClick={() => updateAnswer('region', region)}
+                    >
+                      {region}
+                    </button>
+                  ))
+                ) : (
+                  <span style={styles.placeholderText}>Select a country to see regions</span>
+                )}
+              </div>
+            </div>
+            
+            <div style={styles.section}>
+              <label style={styles.label}>Vintage</label>
+              <div style={styles.optionGrid}>
+                {allYears.map(year => (
+                  <button
+                    key={year}
+                    style={{
+                      ...styles.optionButton,
+                      ...(currentAnswer.year === year ? styles.optionSelected : {})
+                    }}
+                    onClick={() => updateAnswer('year', year)}
+                  >
+                    {year}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div style={styles.section}>
+              <label style={styles.label}>Body</label>
+              <div style={styles.scaleContainer}>
+                <span style={styles.scaleLabel}>Light</span>
+                <div style={styles.scaleButtons}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      style={{
+                        ...styles.scaleButton,
+                        ...(currentAnswer.body === n ? styles.scaleSelected : {})
+                      }}
+                      onClick={() => updateAnswer('body', n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <span style={styles.scaleLabel}>Full</span>
+              </div>
+            </div>
+            
+            <div style={styles.section}>
+              <label style={styles.label}>Dryness</label>
+              <div style={styles.scaleContainer}>
+                <span style={styles.scaleLabel}>Dry</span>
+                <div style={styles.scaleButtons}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      style={{
+                        ...styles.scaleButton,
+                        ...(currentAnswer.dryness === n ? styles.scaleSelected : {})
+                      }}
+                      onClick={() => updateAnswer('dryness', n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <span style={styles.scaleLabel}>Sweet</span>
+              </div>
+            </div>
+            
+            <div style={styles.section}>
+              <label style={styles.label}>
+                Tasting Notes ({currentAnswer.notes.length}/6 selected)
+              </label>
+              <div style={styles.notesGrid}>
+                {allNotes.map(note => {
+                  const isSelected = currentAnswer.notes.includes(note);
+                  const isDisabled = !isSelected && currentAnswer.notes.length >= 6;
+                  return (
+                    <button
+                      key={note}
+                      style={{
+                        ...styles.noteButton,
+                        ...(isSelected ? styles.noteSelected : {}),
+                        ...(isDisabled ? styles.noteDisabled : {})
+                      }}
+                      onClick={() => toggleNote(note)}
+                      disabled={isDisabled}
+                    >
+                      {note}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          
+          <div style={styles.navigation}>
+            <button 
+              style={{...styles.navButton, ...styles.navButtonPrimary}}
+              onClick={revealCurrentWine}
+            >
+              Reveal Wine {currentWine + 1}
+            </button>
+          </div>
+
+          <button style={styles.resetButtonSmall} onClick={resetQuiz}>
+            Reset Quiz
+          </button>
+        </div>
+      );
+    }
+
+    const styles = {
+      container: {
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #1a1514 0%, #2d2320 100%)',
+        padding: '0 0 40px 0',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        color: '#f4efe9',
+      },
+      header: {
+        textAlign: 'center',
+        padding: '40px 20px 30px',
+        position: 'relative',
+      },
+      headerAccent: {
+        position: 'absolute',
+        top: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '1px',
+        height: '20px',
+        background: '#8b7355',
+      },
+      title: {
+        fontSize: '2.5rem',
+        fontWeight: 300,
+        letterSpacing: '0.15em',
+        textTransform: 'uppercase',
+        margin: 0,
+        color: '#f4efe9',
+      },
+      subtitle: {
+        fontSize: '1rem',
+        fontWeight: 400,
+        letterSpacing: '0.3em',
+        textTransform: 'uppercase',
+        margin: '10px 0 0',
+        color: '#8b7355',
+      },
+      wineNav: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '12px',
+        marginBottom: '24px',
+      },
+      wineNavButton: {
+        width: '44px',
+        height: '44px',
+        borderRadius: '50%',
+        border: '1px solid #5a4a3a',
+        background: 'transparent',
+        color: '#8b7355',
+        fontSize: '1.1rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      wineNavComplete: {
+        background: 'rgba(100, 140, 100, 0.3)',
+        borderColor: '#648c64',
+        color: '#a8c8a8',
+      },
+      wineNavCurrent: {
+        background: '#8b7355',
+        color: '#1a1514',
+        borderColor: '#8b7355',
+      },
+      card: {
+        background: 'rgba(244, 239, 233, 0.03)',
+        margin: '0 16px',
+        padding: '28px 20px',
+        borderRadius: '2px',
+        border: '1px solid rgba(139, 115, 85, 0.2)',
+      },
+      cardTitle: {
+        fontSize: '1.4rem',
+        fontWeight: 400,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        margin: '0 0 28px',
+        textAlign: 'center',
+        color: '#d4c4b0',
+      },
+      section: {
+        marginBottom: '28px',
+      },
+      label: {
+        display: 'block',
+        fontSize: '0.85rem',
+        fontWeight: 600,
+        letterSpacing: '0.15em',
+        textTransform: 'uppercase',
+        marginBottom: '12px',
+        color: '#8b7355',
+      },
+      hint: {
+        fontWeight: 400,
+        fontStyle: 'italic',
+        textTransform: 'none',
+        letterSpacing: '0.02em',
+        color: '#6b5b4b',
+      },
+      placeholderText: {
+        color: '#6b5b4b',
+        fontStyle: 'italic',
+        fontSize: '0.95rem',
+      },
+      optionGrid: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+      },
+      optionButton: {
+        padding: '10px 16px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '2px',
+        background: 'transparent',
+        color: '#d4c4b0',
+        fontSize: '0.95rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      },
+      optionSelected: {
+        background: '#8b7355',
+        color: '#1a1514',
+        borderColor: '#8b7355',
+      },
+      scaleContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+      },
+      scaleLabel: {
+        fontSize: '0.75rem',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        color: '#6b5b4b',
+        minWidth: '40px',
+      },
+      scaleButtons: {
+        display: 'flex',
+        gap: '8px',
+        flex: 1,
+        justifyContent: 'center',
+      },
+      scaleButton: {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        border: '1px solid #5a4a3a',
+        background: 'transparent',
+        color: '#d4c4b0',
+        fontSize: '1rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      },
+      scaleSelected: {
+        background: '#8b7355',
+        color: '#1a1514',
+        borderColor: '#8b7355',
+      },
+      notesGrid: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+      },
+      noteButton: {
+        padding: '8px 12px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '20px',
+        background: 'transparent',
+        color: '#a89080',
+        fontSize: '0.85rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      },
+      noteSelected: {
+        background: 'rgba(139, 115, 85, 0.3)',
+        color: '#f4efe9',
+        borderColor: '#8b7355',
+      },
+      noteDisabled: {
+        opacity: 0.4,
+        cursor: 'not-allowed',
+      },
+      navigation: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '12px',
+        marginTop: '24px',
+        padding: '0 16px',
+      },
+      navButton: {
+        padding: '14px 28px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '2px',
+        background: 'transparent',
+        color: '#d4c4b0',
+        fontSize: '1rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+        letterSpacing: '0.05em',
+        transition: 'all 0.2s ease',
+      },
+      navButtonPrimary: {
+        background: '#8b7355',
+        color: '#1a1514',
+        borderColor: '#8b7355',
+      },
+      revealNavigation: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '12px',
+        marginTop: '24px',
+        padding: '0 16px',
+        flexWrap: 'wrap',
+      },
+      revealCard: {
+        background: 'rgba(244, 239, 233, 0.03)',
+        margin: '0 16px',
+        padding: '28px 20px',
+        borderRadius: '2px',
+        border: '1px solid rgba(139, 115, 85, 0.2)',
+      },
+      revealHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '16px',
+      },
+      revealWineName: {
+        fontSize: '1.4rem',
+        fontWeight: 500,
+        color: '#f4efe9',
+        margin: 0,
+        flex: 1,
+        paddingRight: '16px',
+      },
+      revealScore: {
+        display: 'flex',
+        alignItems: 'baseline',
+      },
+      revealScoreNumber: {
+        fontSize: '2rem',
+        fontWeight: 600,
+        color: '#8b7355',
+      },
+      revealScoreDivider: {
+        fontSize: '1.5rem',
+        color: '#5a4a3a',
+        margin: '0 4px',
+      },
+      revealScoreTotal: {
+        fontSize: '1.2rem',
+        color: '#6b5b4b',
+      },
+      wineDescription: {
+        fontSize: '0.95rem',
+        color: '#a89080',
+        lineHeight: 1.6,
+        margin: '0 0 24px',
+        fontStyle: 'italic',
+      },
+      comparisonGrid: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        marginBottom: '20px',
+      },
+      comparisonRow: {
+        display: 'grid',
+        gridTemplateColumns: '70px 1fr 1fr',
+        gap: '12px',
+        alignItems: 'center',
+        fontSize: '0.9rem',
+      },
+      compLabel: {
+        color: '#6b5b4b',
+        fontSize: '0.75rem',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+      },
+      compAnswer: {
+        padding: '6px 10px',
+        borderRadius: '2px',
+        textAlign: 'center',
+      },
+      compCorrect: {
+        color: '#8b7355',
+        textAlign: 'center',
+      },
+      correct: {
+        background: 'rgba(100, 140, 100, 0.2)',
+        color: '#a8c8a8',
+      },
+      incorrect: {
+        background: 'rgba(140, 100, 100, 0.2)',
+        color: '#c8a8a8',
+      },
+      notesSection: {
+        marginTop: '20px',
+      },
+      notesTags: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        marginTop: '10px',
+      },
+      noteTag: {
+        padding: '6px 12px',
+        borderRadius: '20px',
+        fontSize: '0.85rem',
+      },
+      noteCorrect: {
+        background: 'rgba(100, 140, 100, 0.2)',
+        color: '#a8c8a8',
+      },
+      noteMissed: {
+        background: 'rgba(139, 115, 85, 0.15)',
+        color: '#8b7355',
+      },
+      summaryCard: {
+        background: 'rgba(244, 239, 233, 0.03)',
+        margin: '0 16px 24px',
+        padding: '32px 20px',
+        borderRadius: '2px',
+        border: '1px solid rgba(139, 115, 85, 0.2)',
+      },
+      gradeSection: {
+        textAlign: 'center',
+      },
+      gradeEmoji: {
+        fontSize: '3rem',
+        display: 'block',
+        marginBottom: '12px',
+      },
+      gradeTitle: {
+        fontSize: '1.6rem',
+        fontWeight: 500,
+        margin: '0 0 16px',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+      },
+      totalScoreDisplay: {
+        display: 'flex',
+        alignItems: 'baseline',
+        justifyContent: 'center',
+      },
+      totalScoreNumber: {
+        fontSize: '3.5rem',
+        fontWeight: 300,
+        color: '#f4efe9',
+      },
+      totalScoreDivider: {
+        fontSize: '2rem',
+        color: '#5a4a3a',
+        margin: '0 8px',
+      },
+      totalScoreTotal: {
+        fontSize: '1.8rem',
+        color: '#6b5b4b',
+      },
+      percentageText: {
+        fontSize: '1rem',
+        color: '#8b7355',
+        marginTop: '8px',
+        letterSpacing: '0.1em',
+      },
+      resultsContainer: {
+        padding: '0 16px',
+      },
+      resultCard: {
+        background: 'rgba(244, 239, 233, 0.03)',
+        marginBottom: '16px',
+        borderRadius: '2px',
+        border: '1px solid rgba(139, 115, 85, 0.2)',
+        overflow: 'hidden',
+      },
+      resultHeaderSummary: {
+        padding: '14px 20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottom: '1px solid rgba(139, 115, 85, 0.1)',
+      },
+      wineNumber: {
+        fontSize: '1rem',
+        fontWeight: 500,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        color: '#d4c4b0',
+      },
+      score: {
+        fontSize: '1.1rem',
+        fontWeight: 600,
+        color: '#8b7355',
+      },
+      resultContent: {
+        padding: '16px 20px',
+      },
+      wineName: {
+        fontSize: '1.2rem',
+        fontWeight: 500,
+        color: '#f4efe9',
+        margin: '0 0 16px',
+      },
+      resetButton: {
+        display: 'block',
+        margin: '24px auto 0',
+        padding: '14px 40px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '2px',
+        background: 'transparent',
+        color: '#d4c4b0',
+        fontSize: '1rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+        letterSpacing: '0.1em',
+      },
+      resetButtonSmall: {
+        display: 'block',
+        margin: '32px auto 0',
+        padding: '10px 20px',
+        border: 'none',
+        borderRadius: '2px',
+        background: 'transparent',
+        color: '#6b5b4b',
+        fontSize: '0.85rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+        letterSpacing: '0.1em',
+        textDecoration: 'underline',
+        textUnderlineOffset: '3px',
+      },
+      bonusCard: {
+        background: 'rgba(244, 239, 233, 0.03)',
+        margin: '24px 16px',
+        padding: '24px 20px',
+        borderRadius: '2px',
+        border: '1px solid rgba(212, 175, 55, 0.3)',
+      },
+      bonusTitle: {
+        fontSize: '1.3rem',
+        fontWeight: 500,
+        color: '#d4af37',
+        margin: '0 0 20px',
+        textAlign: 'center',
+        letterSpacing: '0.1em',
+      },
+      bonusSection: {
+        marginBottom: '24px',
+      },
+      bonusLabel: {
+        display: 'block',
+        fontSize: '0.85rem',
+        fontWeight: 600,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        marginBottom: '12px',
+        color: '#8b7355',
+      },
+      bonusBreakdown: {
+        fontSize: '0.9rem',
+        color: '#6b5b4b',
+        marginTop: '12px',
+      },
+      priceOrderGrid: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      },
+      priceOrderRow: {
+        display: 'grid',
+        gridTemplateColumns: '100px 1fr auto',
+        gap: '12px',
+        alignItems: 'center',
+      },
+      priceOrderLabel: {
+        fontSize: '0.9rem',
+        color: '#d4c4b0',
+      },
+      priceOrderSelect: {
+        padding: '10px 12px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '2px',
+        background: 'rgba(26, 21, 20, 0.8)',
+        color: '#d4c4b0',
+        fontSize: '0.95rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        cursor: 'pointer',
+      },
+      priceGuessGrid: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      },
+      priceGuessRow: {
+        display: 'grid',
+        gridTemplateColumns: '70px 1fr auto',
+        gap: '12px',
+        alignItems: 'center',
+      },
+      priceGuessLabel: {
+        fontSize: '0.9rem',
+        color: '#d4c4b0',
+      },
+      priceInputWrapper: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+      },
+      dollarSign: {
+        color: '#8b7355',
+        fontSize: '1rem',
+      },
+      priceInput: {
+        padding: '10px 12px',
+        border: '1px solid #5a4a3a',
+        borderRadius: '2px',
+        background: 'rgba(26, 21, 20, 0.8)',
+        color: '#d4c4b0',
+        fontSize: '0.95rem',
+        fontFamily: '"Cormorant Garamond", Georgia, serif',
+        width: '100px',
+      },
+      priceReveal: {
+        fontSize: '0.85rem',
+        color: '#8b7355',
+        fontWeight: 500,
+      },
+      revealBonusButton: {
+        display: 'block',
+        margin: '20px auto 0',
+        width: 'auto',
+      },
+      bonusResults: {
+        textAlign: 'center',
+        marginTop: '20px',
+        padding: '16px',
+        background: 'rgba(212, 175, 55, 0.1)',
+        borderRadius: '2px',
+      },
+      bonusResultText: {
+        fontSize: '0.95rem',
+        color: '#d4c4b0',
+        margin: '0 0 8px',
+      },
+      bonusResultTotal: {
+        fontSize: '1.1rem',
+        fontWeight: 600,
+        color: '#d4af37',
+        margin: 0,
+      },
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<WineQuiz />);
+  </script>
+</body>
+</html>
